@@ -1,6 +1,8 @@
 var express = require("express");
 var router = express.Router();
 const db = require("../lib/postgre");
+const { applicantSchema } = require("../utils/schemas/applicants");
+const validation = require("../utils/middlewares/validationHandler");
 
 /* GET applicants listing. */
 router.get("/", async (req, res, next) => {
@@ -9,16 +11,18 @@ router.get("/", async (req, res, next) => {
 });
 
 /* POST applicants creating. */
-router.post("/", async (req, res, next) => {
+router.post("/", validation(applicantSchema), async (req, res, next) => {
   const { body: applicant } = req;
-  const { rowCount } = await db.query("INSERT INTO applicants (applicant) VALUES ($1)", [
+  const {
+    rowCount,
+  } = await db.query("INSERT INTO applicants (applicant) VALUES ($1)", [
     applicant.applicant,
   ]);
   res.json({ message: "Solicitante creado!" });
 });
 
 /* PUT applicants updating. */
-router.put("/:id", async (req, res, next) => {
+router.put("/:id", validation(applicantSchema), async (req, res, next) => {
   const { id } = req.params;
   const { body: applicant } = req;
   const {} = await db.query("UPDATE applicants SET applicant=$1 WHERE id=$2", [

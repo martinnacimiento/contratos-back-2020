@@ -39,6 +39,7 @@ CREATE TABLE contracts(
     id SERIAL PRIMARY KEY,
     date_from TIMESTAMP NOT NULL,
     date_until TIMESTAMP NOT NULL,
+    date_order TIMESTAMP NOT NULL,
     number_order VARCHAR(8), -- Nro Disposicion
     reason TEXT,
     attached VARCHAR(50), --PDF

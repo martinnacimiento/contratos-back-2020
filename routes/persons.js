@@ -1,6 +1,8 @@
 var express = require("express");
 var router = express.Router();
 const db = require("../lib/postgre");
+const { personSchema } = require("../utils/schemas/persons");
+const validation = require("../utils/middlewares/validationHandler");
 
 /* GET persons listing. */
 router.get("/", async (req, res, next) => {
@@ -9,7 +11,7 @@ router.get("/", async (req, res, next) => {
 });
 
 /* POST persons creating. */
-router.post("/", async (req, res, next) => {
+router.post("/", validation(personSchema), async (req, res, next) => {
   const { body: person } = req;
   const response = await db.query(
     "INSERT INTO persons (surname, name, dni, domicile, mail, telephone, date_birth, cuit, sex_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
@@ -29,7 +31,7 @@ router.post("/", async (req, res, next) => {
 });
 
 /* PUT persons updating. */
-router.put("/:id", async (req, res, next) => {
+router.put("/:id", validation(personSchema), async (req, res, next) => {
   const { id } = req.params;
   const { body: person } = req;
   const {

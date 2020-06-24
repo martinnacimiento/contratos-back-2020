@@ -1,6 +1,8 @@
 var express = require("express");
 var router = express.Router();
 const db = require("../lib/postgre");
+const { stateSchema } = require("../utils/schemas/states");
+const validation = require("../utils/middlewares/validationHandler");
 
 /* GET states listing. */
 router.get("/", async (req, res, next) => {
@@ -9,22 +11,23 @@ router.get("/", async (req, res, next) => {
 });
 
 /* POST states creating. */
-router.post("/", async (req, res, next) => {
+router.post("/", validation(stateSchema), async (req, res, next) => {
   const { body: state } = req;
-  const { rowCount } = await db.query("INSERT INTO states (state) VALUES ($1)", [
-    state.state,
-  ]);
+  const { rowCount } = await db.query(
+    "INSERT INTO states (state) VALUES ($1)",
+    [state.state]
+  );
   res.json({ message: "Estado creado!" });
 });
 
 /* PUT states updating. */
-router.put("/:id", async (req, res, next) => {
+router.put("/:id", validation(stateSchema), async (req, res, next) => {
   const { id } = req.params;
   const { body: state } = req;
-  const {} = await db.query("UPDATE states SET state=$1 WHERE id=$2", [
-    state.state,
-    id,
-  ]);
+  const { rowCount } = await db.query(
+    "UPDATE states SET state=$1 WHERE id=$2",
+    [state.state, id]
+  );
   res.json({ message: `Estado ${id} actualizado!` });
 });
 

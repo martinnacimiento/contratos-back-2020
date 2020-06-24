@@ -1,6 +1,11 @@
 var express = require("express");
 var router = express.Router();
 const db = require("../lib/postgre");
+const {
+  createContractSchema,
+  updateContractSchema,
+} = require("../utils/schemas/contracts");
+const validation = require("../utils/middlewares/validationHandler");
 
 /* GET contracts listing. */
 router.get("/", async (req, res, next) => {
@@ -9,7 +14,7 @@ router.get("/", async (req, res, next) => {
 });
 
 /* POST contracts creating. */
-router.post("/", async (req, res, next) => {
+router.post("/", validation(createContractSchema), async (req, res, next) => {
   const { body: contract } = req;
   const response = await db.query(
     "INSERT INTO contracts (date_from, date_until, number_order, reason, attached, created_at, updated_at, state_id, applicant_id, object_id, person_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
@@ -31,7 +36,7 @@ router.post("/", async (req, res, next) => {
 });
 
 /* PUT contracts updating. */
-router.put("/:id", async (req, res, next) => {
+router.put("/:id", validation(updateContractSchema), async (req, res, next) => {
   const { id } = req.params;
   const { body: contract } = req;
   const {
