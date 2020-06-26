@@ -1,6 +1,7 @@
 var express = require("express");
 var router = express.Router();
 const db = require("../lib/postgre");
+const { idSchema } = require("../utils/schemas/general");
 const { applicantSchema } = require("../utils/schemas/applicants");
 const validation = require("../utils/middlewares/validationHandler");
 
@@ -22,18 +23,23 @@ router.post("/", validation(applicantSchema), async (req, res, next) => {
 });
 
 /* PUT applicants updating. */
-router.put("/:id", validation(applicantSchema), async (req, res, next) => {
-  const { id } = req.params;
-  const { body: applicant } = req;
-  const {} = await db.query("UPDATE applicants SET applicant=$1 WHERE id=$2", [
-    applicant.applicant,
-    id,
-  ]);
-  res.json({ message: `Solicitante ${id} actualizado!` });
-});
+router.put(
+  "/:id",
+  validation({ id: idSchema }, "params"),
+  validation(applicantSchema),
+  async (req, res, next) => {
+    const { id } = req.params;
+    const { body: applicant } = req;
+    const {} = await db.query(
+      "UPDATE applicants SET applicant=$1 WHERE id=$2",
+      [applicant.applicant, id]
+    );
+    res.json({ message: `Solicitante ${id} actualizado!` });
+  }
+);
 
 /* DELETE applicants deleting. */
-router.delete("/:id", async (req, res, next) => {
+router.delete("/:id", validation({ id: idSchema }, "params"), async (req, res, next) => {
   const { id } = req.params;
   const {} = db.query("DELETE FROM applicants WHERE id=$1", [id]);
   res.json({ message: `Solicitante ${id} eliminado!` });

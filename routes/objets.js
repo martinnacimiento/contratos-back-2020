@@ -1,6 +1,7 @@
 var express = require("express");
 var router = express.Router();
 const db = require("../lib/postgre");
+const { idSchema } = require("../utils/schemas/general");
 const { objectSchema } = require("../utils/schemas/objects");
 const validation = require("../utils/middlewares/validationHandler");
 
@@ -22,23 +23,32 @@ router.post("/", validation(objectSchema), async (req, res, next) => {
 });
 
 /* PUT object updating. */
-router.put("/:id", validation(objectSchema), async (req, res, next) => {
-  const { id } = req.params;
-  const { body: object } = req;
-  const {
-    rowCount,
-  } = await db.query("UPDATE objects SET object=$1 WHERE id=$2", [
-    object.object,
-    id,
-  ]);
-  res.json({ message: `Objeto ${id} actualizado!` });
-});
+router.put(
+  "/:id",
+  validation({ id: idSchema }, "params"),
+  validation(objectSchema),
+  async (req, res, next) => {
+    const { id } = req.params;
+    const { body: object } = req;
+    const {
+      rowCount,
+    } = await db.query("UPDATE objects SET object=$1 WHERE id=$2", [
+      object.object,
+      id,
+    ]);
+    res.json({ message: `Objeto ${id} actualizado!` });
+  }
+);
 
 /* DELETE object deleting. */
-router.delete("/:id", async (req, res, next) => {
-  const { id } = req.params;
-  const response = await db.query("DELETE FROM objects WHERE id=$1", [id]);
-  res.json({ message: `Objeto ${id} eliminado!` });
-});
+router.delete(
+  "/:id",
+  validation({ id: idSchema }, "params"),
+  async (req, res, next) => {
+    const { id } = req.params;
+    const response = await db.query("DELETE FROM objects WHERE id=$1", [id]);
+    res.json({ message: `Objeto ${id} eliminado!` });
+  }
+);
 
 module.exports = router;

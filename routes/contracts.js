@@ -1,6 +1,7 @@
 var express = require("express");
 var router = express.Router();
 const db = require("../lib/postgre");
+const { idSchema } = require("../utils/schemas/general");
 const {
   createContractSchema,
   updateContractSchema,
@@ -36,38 +37,47 @@ router.post("/", validation(createContractSchema), async (req, res, next) => {
 });
 
 /* PUT contracts updating. */
-router.put("/:id", validation(updateContractSchema), async (req, res, next) => {
-  const { id } = req.params;
-  const { body: contract } = req;
-  const {
-    rowCount,
-  } = await db.query(
-    "UPDATE contracts date_from=$1, date_until=$2, number_order=$3, reason=$4, attached=$5, created_at=$6, updated_at=$7, state_id=$8, applicant_id=$9, object_id=$10, person_id=$11 WHERE id=$12",
-    [
-      contract.date_from,
-      contract.date_until,
-      contract.number_order,
-      contract.reason,
-      contract.attached,
-      contract.created_at,
-      contract.updated_at,
-      contract.state_id,
-      contract.applicant_id,
-      contract.object_id,
-      contract.person_id,
-      id,
-    ]
-  );
-  res.json({ message: `Contrato ${id} actualizado!` });
-});
+router.put(
+  "/:id",
+  validation({ id: idSchema }, "params"),
+  validation(updateContractSchema),
+  async (req, res, next) => {
+    const { id } = req.params;
+    const { body: contract } = req;
+    const {
+      rowCount,
+    } = await db.query(
+      "UPDATE contracts date_from=$1, date_until=$2, number_order=$3, reason=$4, attached=$5, created_at=$6, updated_at=$7, state_id=$8, applicant_id=$9, object_id=$10, person_id=$11 WHERE id=$12",
+      [
+        contract.date_from,
+        contract.date_until,
+        contract.number_order,
+        contract.reason,
+        contract.attached,
+        contract.created_at,
+        contract.updated_at,
+        contract.state_id,
+        contract.applicant_id,
+        contract.object_id,
+        contract.person_id,
+        id,
+      ]
+    );
+    res.json({ message: `Contrato ${id} actualizado!` });
+  }
+);
 
 /* DELETE contracts deleting. */
-router.delete("/:id", async (req, res, next) => {
-  const { id } = req.params;
-  const { rowCount } = await db.query("DELETE FROM contracts WHERE id=$1", [
-    id,
-  ]);
-  res.json({ message: `Contrato ${id} eliminado!` });
-});
+router.delete(
+  "/:id",
+  validation({ id: idSchema }, "params"),
+  async (req, res, next) => {
+    const { id } = req.params;
+    const { rowCount } = await db.query("DELETE FROM contracts WHERE id=$1", [
+      id,
+    ]);
+    res.json({ message: `Contrato ${id} eliminado!` });
+  }
+);
 
 module.exports = router;
