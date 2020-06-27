@@ -4,12 +4,29 @@ const db = require("../lib/postgre");
 const { idSchema } = require("../utils/schemas/general");
 const { applicantSchema } = require("../utils/schemas/applicants");
 const validation = require("../utils/middlewares/validationHandler");
+const { Applicant } = require("../models");
 
 /* GET applicants listing. */
 router.get("/", async (req, res, next) => {
-  const { rows } = await db.query("SELECT * FROM applicants", []);
-  res.json({ applicants: rows });
+  const applicants = await Applicant.findAll({
+    attributes: ["id", "applicant"],
+  });
+  // const { rows } = await db.query("SELECT * FROM applicants", []);
+  res.json({ applicants: applicants });
 });
+
+/* GET a applicant. */
+router.get(
+  "/:id",
+  validation({ id: idSchema }, "params"),
+  async (req, res, next) => {
+    const { id } = req.params;
+    const { rows } = await db.query("SELECT * FROM applicants WHERE id=$1", [
+      id,
+    ]);
+    res.json({ applicant: rows[0] });
+  }
+);
 
 /* POST applicants creating. */
 router.post("/", validation(applicantSchema), async (req, res, next) => {
@@ -39,10 +56,14 @@ router.put(
 );
 
 /* DELETE applicants deleting. */
-router.delete("/:id", validation({ id: idSchema }, "params"), async (req, res, next) => {
-  const { id } = req.params;
-  const {} = db.query("DELETE FROM applicants WHERE id=$1", [id]);
-  res.json({ message: `Solicitante ${id} eliminado!` });
-});
+router.delete(
+  "/:id",
+  validation({ id: idSchema }, "params"),
+  async (req, res, next) => {
+    const { id } = req.params;
+    const {} = db.query("DELETE FROM applicants WHERE id=$1", [id]);
+    res.json({ message: `Solicitante ${id} eliminado!` });
+  }
+);
 
 module.exports = router;

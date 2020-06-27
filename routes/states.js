@@ -11,6 +11,17 @@ router.get("/", async (req, res, next) => {
   res.json({ states: rows });
 });
 
+/* GET a state. */
+router.get(
+  "/:id",
+  validation({ id: idSchema }, "params"),
+  async (req, res, next) => {
+    const { id } = req.params;
+    const { rows } = await db.query("SELECT * FROM states WHERE id=$1", [id]);
+    res.json({ state: rows[0] });
+  }
+);
+
 /* POST states creating. */
 router.post("/", validation(stateSchema), async (req, res, next) => {
   const { body: state } = req;

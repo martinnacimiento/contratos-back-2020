@@ -11,6 +11,17 @@ router.get("/", async (req, res, next) => {
   res.json({ objects: rows });
 });
 
+/* GET a object. */
+router.get(
+  "/:id",
+  validation({ id: idSchema }, "params"),
+  async (req, res, next) => {
+    const { id } = req.params;
+    const { rows } = await db.query("SELECT * FROM objects WHERE id=$1", [id]);
+    res.json({ object: rows[0] });
+  }
+);
+
 /* POST object creating. */
 router.post("/", validation(objectSchema), async (req, res, next) => {
   const { body: object } = req;

@@ -11,6 +11,17 @@ router.get("/", async (req, res, next) => {
   res.json({ sexes: rows });
 });
 
+/* GET a sex. */
+router.get(
+  "/:id",
+  validation({ id: idSchema }, "params"),
+  async (req, res, next) => {
+    const { id } = req.params;
+    const { rows } = await db.query("SELECT * FROM sexes WHERE id=$1", [id]);
+    res.json({ sex: rows[0] });
+  }
+);
+
 /* POST sexes creating. */
 router.post("/", validation(sexSchema), async (req, res, next) => {
   const { body: sex } = req;
