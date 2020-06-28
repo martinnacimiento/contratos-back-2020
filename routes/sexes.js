@@ -1,14 +1,14 @@
 var express = require("express");
 var router = express.Router();
-const db = require("../lib/postgre");
 const { idSchema } = require("../utils/schemas/general");
 const { sexSchema } = require("../utils/schemas/sexes");
 const validation = require("../utils/middlewares/validationHandler");
+const { Sex } = require("../models");
 
 /* GET sexes listing. */
 router.get("/", async (req, res, next) => {
-  const { rows } = await db.query("SELECT * FROM sexes", []);
-  res.json({ sexes: rows });
+  const sexes = await Sex.findAll();
+  res.json({ sexes: sexes });
 });
 
 /* GET a sex. */
@@ -17,17 +17,15 @@ router.get(
   validation({ id: idSchema }, "params"),
   async (req, res, next) => {
     const { id } = req.params;
-    const { rows } = await db.query("SELECT * FROM sexes WHERE id=$1", [id]);
-    res.json({ sex: rows[0] });
+    const sex = await Sex.findByPk(id);
+    res.json({ sex: sex });
   }
 );
 
 /* POST sexes creating. */
 router.post("/", validation(sexSchema), async (req, res, next) => {
   const { body: sex } = req;
-  const { rowCount } = await db.query("INSERT INTO sexes (sex) VALUES ($1)", [
-    sex.sex,
-  ]);
+  await Sex.create(sex);
   res.json({ message: "Sexo creado!" });
 });
 
@@ -38,11 +36,9 @@ router.put(
   validation(sexSchema),
   async (req, res, next) => {
     const { id } = req.params;
-    const { body: sex } = req;
-    const {} = await db.query("UPDATE sexes SET sex=$1 WHERE id=$2", [
-      sex.sex,
-      id,
-    ]);
+    const { body: data } = req;
+    const sex = await Sex.findByPk(id);
+    await sex.update(data);
     res.json({ message: `Sexo ${id} actualizado!` });
   }
 );
@@ -53,7 +49,9 @@ router.delete(
   validation({ id: idSchema }, "params"),
   async (req, res, next) => {
     const { id } = req.params;
-    const {} = db.query("DELETE FROM sexes WHERE id=$1", [id]);
+    await Sex.destroy({
+      where: { id: id },
+    });
     res.json({ message: `Sexo ${id} eliminado!` });
   }
 );

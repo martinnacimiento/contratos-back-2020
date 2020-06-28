@@ -1,14 +1,14 @@
 var express = require("express");
 var router = express.Router();
-const db = require("../lib/postgre");
 const { idSchema } = require("../utils/schemas/general");
 const { objectSchema } = require("../utils/schemas/objects");
 const validation = require("../utils/middlewares/validationHandler");
+const { Object } = require("../models");
 
 /* GET object listing. */
 router.get("/", async (req, res, next) => {
-  const { rows } = await db.query("SELECT * FROM objects", []);
-  res.json({ objects: rows });
+  const objects = await Object.findAll();
+  res.json({ objects: objects });
 });
 
 /* GET a object. */
@@ -17,19 +17,15 @@ router.get(
   validation({ id: idSchema }, "params"),
   async (req, res, next) => {
     const { id } = req.params;
-    const { rows } = await db.query("SELECT * FROM objects WHERE id=$1", [id]);
-    res.json({ object: rows[0] });
+    const object = await Object.findByPk(id);
+    res.json({ object: object });
   }
 );
 
 /* POST object creating. */
 router.post("/", validation(objectSchema), async (req, res, next) => {
   const { body: object } = req;
-  const {
-    rowCount,
-  } = await db.query("INSERT INTO objects (object) VALUES ($1)", [
-    object.object,
-  ]);
+  await Object.create(object);
   res.json({ message: "Objeto creado!" });
 });
 
@@ -40,13 +36,9 @@ router.put(
   validation(objectSchema),
   async (req, res, next) => {
     const { id } = req.params;
-    const { body: object } = req;
-    const {
-      rowCount,
-    } = await db.query("UPDATE objects SET object=$1 WHERE id=$2", [
-      object.object,
-      id,
-    ]);
+    const { body: data } = req;
+    const object = await Object.findByPk(id);
+    await object.update(data);
     res.json({ message: `Objeto ${id} actualizado!` });
   }
 );
@@ -57,7 +49,9 @@ router.delete(
   validation({ id: idSchema }, "params"),
   async (req, res, next) => {
     const { id } = req.params;
-    const response = await db.query("DELETE FROM objects WHERE id=$1", [id]);
+    await Object.destroy({
+      where: { id: id },
+    });
     res.json({ message: `Objeto ${id} eliminado!` });
   }
 );

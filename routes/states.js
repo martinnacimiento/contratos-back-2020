@@ -1,14 +1,14 @@
 var express = require("express");
 var router = express.Router();
-const db = require("../lib/postgre");
 const { idSchema } = require("../utils/schemas/general");
 const { stateSchema } = require("../utils/schemas/states");
 const validation = require("../utils/middlewares/validationHandler");
+const { State } = require("../models");
 
 /* GET states listing. */
 router.get("/", async (req, res, next) => {
-  const { rows } = await db.query("SELECT * FROM states", []);
-  res.json({ states: rows });
+  const states = await State.findAll();
+  res.json({ states: states });
 });
 
 /* GET a state. */
@@ -17,18 +17,15 @@ router.get(
   validation({ id: idSchema }, "params"),
   async (req, res, next) => {
     const { id } = req.params;
-    const { rows } = await db.query("SELECT * FROM states WHERE id=$1", [id]);
-    res.json({ state: rows[0] });
+    const state = await State.findByPk(id);
+    res.json({ state: state });
   }
 );
 
 /* POST states creating. */
 router.post("/", validation(stateSchema), async (req, res, next) => {
   const { body: state } = req;
-  const { rowCount } = await db.query(
-    "INSERT INTO states (state) VALUES ($1)",
-    [state.state]
-  );
+  await State.create(state);
   res.json({ message: "Estado creado!" });
 });
 
@@ -39,13 +36,9 @@ router.put(
   validation(stateSchema),
   async (req, res, next) => {
     const { id } = req.params;
-    const { body: state } = req;
-    const {
-      rowCount,
-    } = await db.query("UPDATE states SET state=$1 WHERE id=$2", [
-      state.state,
-      id,
-    ]);
+    const { body: data } = req;
+    const state = await State.findByPk(id);
+    await state.update(data);
     res.json({ message: `Estado ${id} actualizado!` });
   }
 );
@@ -56,7 +49,9 @@ router.delete(
   validation({ id: idSchema }, "params"),
   async (req, res, next) => {
     const { id } = req.params;
-    const {} = db.query("DELETE FROM states WHERE id=$1", [id]);
+    await State.destroy({
+      where: { id: id },
+    });
     res.json({ message: `Estado ${id} eliminado!` });
   }
 );
