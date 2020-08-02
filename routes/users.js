@@ -1,9 +1,59 @@
-var express = require('express');
+var express = require("express");
 var router = express.Router();
+const { idSchema } = require("../utils/schemas/general");
+const { userSchema } = require("../utils/schemas/users");
+const validation = require("../utils/middlewares/validationHandler");
+const { State } = require("../models");
 
-/* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
+/* GET states listing. */
+router.get("/", async (req, res, next) => {
+  const states = await State.findAll();
+  res.json({ states: states });
 });
+
+/* GET a state. */
+router.get(
+  "/:id",
+  validation({ id: idSchema }, "params"),
+  async (req, res, next) => {
+    const { id } = req.params;
+    const state = await State.findByPk(id);
+    res.json({ state: state });
+  }
+);
+
+/* POST states creating. */
+router.post("/", validation(userSchema), async (req, res, next) => {
+  const { body: state } = req;
+  await State.create(state);
+  res.json({ message: "Estado creado!" });
+});
+
+/* PUT states updating. */
+router.put(
+  "/:id",
+  validation({ id: idSchema }, "params"),
+  validation(userSchema),
+  async (req, res, next) => {
+    const { id } = req.params;
+    const { body: data } = req;
+    const state = await State.findByPk(id);
+    await state.update(data);
+    res.json({ message: `Estado ${id} actualizado!` });
+  }
+);
+
+/* DELETE states deleting. */
+router.delete(
+  "/:id",
+  validation({ id: idSchema }, "params"),
+  async (req, res, next) => {
+    const { id } = req.params;
+    await State.destroy({
+      where: { id: id },
+    });
+    res.json({ message: `Estado ${id} eliminado!` });
+  }
+);
 
 module.exports = router;

@@ -1,3 +1,3 @@
 set -e
 cd /utils
-psql -U postgres < contratos.sql
+psql -U postgres < contracts.sql
