@@ -31,6 +31,30 @@ const User = db.define("users", {
 })
 
 /**
+ * Define la tabla "roles" y sus campos
+ */
+const Role = db.define("roles", {
+  name: { type: DataTypes.STRING(20), allowNull: false },
+  slug: { type: DataTypes.STRING(20), allowNull: false },
+  description: { type: DataTypes.TEXT, allowNull: false },
+})
+
+/**
+ * Define la tabla "permissions" y sus campos
+ */
+const Permission = db.define("permissions", {
+  name: { type: DataTypes.STRING(50), allowNull: false },
+  slug: { type: DataTypes.STRING(30), allowNull: false },
+  description: { type: DataTypes.TEXT, allowNull: false },
+})
+
+User.belongsToMany(Role, { through: "users_roles" })
+Role.belongsToMany(User, { through: "users_roles" })
+
+Role.belongsToMany(Permission, { through: "roles_permissions" })
+Permission.belongsToMany(Role, { through: "roles_permissions" })
+
+/**
  * Define la tabla "object" y sus campos
  */
 const Object = db.define("object", {
@@ -117,4 +141,7 @@ module.exports = {
   Object,
   Contract,
   State,
+  Role,
+  User,
+  Permission,
 }

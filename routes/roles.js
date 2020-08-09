@@ -1,80 +1,80 @@
 var express = require("express")
 var router = express.Router()
 const { idSchema } = require("../utils/schemas/general")
-const { personSchema } = require("../utils/schemas/persons")
+const { RoleSchema } = require("../utils/schemas/roles")
 const validation = require("../utils/middlewares/validationHandler")
-const { Person, Sex } = require("../models")
+const { Role, Permission } = require("../models")
 const passport = require("passport")
 const jwtScope = require("express-jwt-scope")
 require("../utils/auth/strategies/jwt")
 
 const options = { session: false }
 
-/* GET persons listing. */
+/* GET Roles listing. */
 router.get(
   "/",
   passport.authenticate("jwt", options),
-  jwtScope("index.person"),
+  jwtScope("index.role"),
   async (req, res, next) => {
-    const persons = await Person.findAll({ include: Sex })
-    res.json({ persons: persons })
+    const roles = await Role.findAll({ include: [Permission] })
+    res.json({ roles })
   }
 )
 
-/* GET a person. */
+/* GET a Role. */
 router.get(
   "/:id",
   passport.authenticate("jwt", options),
-  jwtScope("show.person"),
+  jwtScope("show.role"),
   validation({ id: idSchema }, "params"),
   async (req, res, next) => {
     const { id } = req.params
-    const person = await Person.findByPk(id)
-    res.json({ person: person })
+    const role = await Role.findByPk(id, { include: [Permission] })
+    res.json({ role })
   }
 )
 
-/* POST persons creating. */
+/* POST Roles creating. */
 router.post(
   "/",
   passport.authenticate("jwt", options),
-  jwtScope("create.person"),
-  validation(personSchema),
+  jwtScope("create.role"),
+  validation(RoleSchema),
   async (req, res, next) => {
-    const { body: person } = req
-    await Person.create(person)
-    res.json({ message: "Persona creada!" })
+    const { body: data } = req
+    const role = await Role.create(data)
+    await role.setPermissions(data.permissions)
+    res.json({ message: "Rol creado!" })
   }
 )
 
-/* PUT persons updating. */
+/* PUT Roles updating. */
 router.put(
   "/:id",
   passport.authenticate("jwt", options),
-  jwtScope("edit.person"),
+  jwtScope("edit.role"),
   validation({ id: idSchema }, "params"),
-  validation(personSchema),
+  validation(RoleSchema),
   async (req, res, next) => {
     const { id } = req.params
     const { body: data } = req
-    const person = await Person.findByPk(id)
-    await person.update(data)
-    res.json({ message: `Persona ${id} actualizada!` })
+    const role = await Role.findByPk(id)
+    await role.update(data)
+    await role.setPermissions(data.permissions)
+    res.json({ message: `Rol ${id} actualizado!` })
   }
 )
 
-/* DELETE persons deleting. */
+/* DELETE Roles deleting. */
 router.delete(
   "/:id",
   passport.authenticate("jwt", options),
-  jwtScope("destroy.person"),
+  jwtScope("destroy.role"),
   validation({ id: idSchema }, "params"),
   async (req, res, next) => {
     const { id } = req.params
-    await Person.destroy({
-      where: { id: id },
-    })
-    res.json({ message: `Persona ${id} eliminada!` })
+    await Role.destroy({ where: { id: id } })
+    res.json({ message: `Rol ${id} eliminado!` })
   }
 )
 

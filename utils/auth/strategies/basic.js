@@ -2,26 +2,21 @@ const passport = require("passport")
 const { BasicStrategy } = require("passport-http")
 const boom = require("boom")
 const bcrypt = require("bcrypt")
-const  = require("../../../lib/sequelize")
+const { User } = require("../../../models")
 
-passport.use(
-  new BasicStrategy(async function (username, password, cb) {
-    const mongoDB = new MongoLib()
+async function login(username, password, cb) {
+  try {
+    const user = await User.findOne({ where: { username } })
 
-    try {
-      const [user] = await mongoDB.index("users", { username })
+    if (!user) return cb(boom.unauthorized(), false)
 
-      if (!user) {
-        return cb(boom.unauthorized(), false)
-      }
+    if (!(await bcrypt.compare(password, user.password)))
+      return cb(boom.unauthorized(), false)
 
-      if (!(await bcrypt.compare(password, user.password))) {
-        return cb(boom.unauthorized(), false)
-      }
+    return cb(null, user)
+  } catch (error) {
+    return cb(error)
+  }
+}
 
-      return cb(null, user)
-    } catch (error) {
-      return cb(error)
-    }
-  })
-)
+passport.use(new BasicStrategy(login))

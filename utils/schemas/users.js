@@ -1,4 +1,4 @@
-const Joi = require("@hapi/joi");
+const Joi = require("@hapi/joi")
 
 const userSchema = {
   username: Joi.string().max(20).required().messages({
@@ -13,6 +13,7 @@ const userSchema = {
     "string.empty": `"contraseña" no puede ser un campo vacío`,
     "any.required": `"contraseña" es un campo requerido`,
   }),
-};
+  roles: Joi.array().items(Joi.number().positive().exist()),
+}
 
-module.exports = {userSchema}
+module.exports = { userSchema }
