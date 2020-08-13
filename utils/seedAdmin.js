@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt")
 
 const salt = 10
 
-const password = process.argv[2]
+const password = process.argv[2] || process.env.ADMIN_PASSWORD
 
 const payloadRole = {
   name: "admin",
@@ -54,7 +54,7 @@ const payloadRole = {
 }
 
 const payloadUser = {
-  username: "elnaci",
+  username: "admin",
   password: "",
   roles: [1],
 }
