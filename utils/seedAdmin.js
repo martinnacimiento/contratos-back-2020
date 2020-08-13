@@ -59,17 +59,16 @@ const payloadUser = {
   roles: [1],
 }
 
-async function seed(password) {
+async function seed() {
   const roleCreated = await Role.create(payloadRole)
   roleCreated.setPermissions(payloadRole.permissions)
-  console.log("Rol creado!");
+  console.log("Rol creado!")
 
   await bcrypt.hash(password, salt, async function (err, hash) {
     payloadUser.password = hash
     const userCreated = await User.create(payloadUser)
     userCreated.setRoles(payloadUser.roles)
   })
-  console.log("Admin creado!");
+  console.log("Admin creado!")
 }
-
-seed(password)
+module.exports = { seed }
