@@ -80,6 +80,7 @@ router.delete(
   validation({ id: idSchema }, "params"),
   async (req, res, next) => {
     const { id } = req.params
+    if (req.user.id == id) return res.status(400).json({error: "No es posible la autoeliminacion."})
     await User.destroy({
       where: { id: id },
     })
